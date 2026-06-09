@@ -3,33 +3,36 @@ import 'dart:io';
 
 class KaliBootstrapService {
   static const String _kaliPath = '/data/local/kali';
-  static const String _kaliArchive = '/sdcard/kali-armhf.tar.gz';
+  static const String _bootstrapArchive = '/sdcard/kali-bootstrap.tar.gz';
 
-  /// الفحص والتجهيز الكامل
+  /// الفحص والتجهيز الكامل باستخدام الحزمة الحقيقية
   static Future<String> bootstrap() async {
-    // 1. فحص إذا كانت التوزيعة موجودة
+    // 1. فحص إذا كانت التوزيعة موجودة بالفعل
     if (await _isKaliInstalled()) {
-      // 2. تجهيز بيئة chroot
       final mountResult = await _mountFilesystems();
       if (!mountResult) return 'Failed to mount filesystems. Root required.';
-
-      // 3. تشغيل الخدمات
       await _startServices();
-
-      return 'Kali Linux is ready.';
+      return 'Kali Linux is already installed and ready.';
     }
 
-    // 4. إذا لم تكن موجودة، محاولة التثبيت
-    final installResult = await _installKali();
-    if (!installResult) return 'Failed to install Kali. Archive not found at $_kaliArchive';
+    // 2. فحص وجود الحزمة الحقيقية
+    final archive = File(_bootstrapArchive);
+    if (!await archive.exists()) {
+      return 'Bootstrap archive not found at $_bootstrapArchive. Please copy it first.';
+    }
 
-    // 5. بعد التثبيت، تجهيز وتشغيل
+    // 3. تثبيت الحزمة الحقيقية
+    final installResult = await _installBootstrap();
+    if (!installResult) return 'Failed to install bootstrap. Root required.';
+
+    // 4. تجهيز بيئة chroot
     final mountResult = await _mountFilesystems();
     if (!mountResult) return 'Failed to mount filesystems. Root required.';
 
+    // 5. تشغيل الخدمات
     await _startServices();
 
-    return 'Kali Linux installed and ready.';
+    return 'Kali Linux installed via bootstrap and ready.';
   }
 
   /// فحص وجود التوزيعة
@@ -42,20 +45,16 @@ class KaliBootstrapService {
     }
   }
 
-  /// تثبيت التوزيعة من الأرشيف
-  static Future<bool> _installKali() async {
+  /// تثبيت الحزمة الحقيقية
+  static Future<bool> _installBootstrap() async {
     try {
-      // فحص وجود الأرشيف
-      final archive = File(_kaliArchive);
-      if (!await archive.exists()) return false;
-
       // إنشاء المجلد
       await Process.run('su', ['-c', 'mkdir -p $_kaliPath'], runInShell: true);
 
-      // فك الضغط
+      // فك ضغط الحزمة الحقيقية
       final result = await Process.run(
         'su',
-        ['-c', 'tar -xzf $_kaliArchive -C $_kaliPath --numeric-owner'],
+        ['-c', 'tar -xzf $_bootstrapArchive -C $_kaliPath --numeric-owner'],
         runInShell: true,
       );
 
@@ -90,9 +89,7 @@ class KaliBootstrapService {
   /// تشغيل الخدمات الأساسية
   static Future<void> _startServices() async {
     try {
-      // بدء SSH
       await Process.run('su', ['-c', 'chroot $_kaliPath /etc/init.d/ssh start'], runInShell: true);
-      // بدء الشبكة
       await Process.run('su', ['-c', 'chroot $_kaliPath /etc/init.d/networking start'], runInShell: true);
     } catch (_) {}
   }
@@ -100,11 +97,9 @@ class KaliBootstrapService {
   /// إيقاف التوزيعة
   static Future<void> shutdown() async {
     try {
-      // إيقاف الخدمات
       await Process.run('su', ['-c', 'chroot $_kaliPath /etc/init.d/ssh stop'], runInShell: true);
       await Process.run('su', ['-c', 'chroot $_kaliPath /etc/init.d/networking stop'], runInShell: true);
 
-      // فصل أنظمة الملفات
       final umounts = [
         'umount $_kaliPath/tmp',
         'umount $_kaliPath/sys',
@@ -125,7 +120,7 @@ class KaliBootstrapService {
     return {
       'installed': installed,
       'path': _kaliPath,
-      'archive': _kaliArchive,
+      'bootstrap': _bootstrapArchive,
     };
   }
 }
