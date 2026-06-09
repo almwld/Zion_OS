@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/unified_core_service.dart';
+import '../../core/services/kali_loader_service.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -11,31 +12,67 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final _targetController = TextEditingController(text: '192.168.1.1');
-  String _output = '';
+  final _cmdController = TextEditingController();
+  String _output = 'جاهز. اكتب "help" للمساعدة.\n';
   bool _loading = false;
+  bool _kaliReady = false;
+  int _toolCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkKaliStatus();
+  }
+
+  Future<void> _checkKaliStatus() async {
+    final status = await KaliLoaderService.getStatus();
+    setState(() {
+      _kaliReady = status['installed'] == true;
+      _toolCount = status['tools_available'] ?? 0;
+    });
+  }
 
   Future<void> _execute(String command) async {
     setState(() => _loading = true);
     final service = ref.read(unifiedCoreProvider);
     final result = await service.execute(command, target: _targetController.text);
-    setState(() { _output = result; _loading = false; });
+    setState(() {
+      _output = result;
+      _loading = false;
+    });
+    if (command == 'kali_install') _checkKaliStatus();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Project Zion'),
+        title: const Text('Project Zion', style: TextStyle(color: Color(0xFF00FF41))),
+        backgroundColor: Colors.black,
         actions: [
-          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.account_circle_outlined), onPressed: () {}),
+          _statusDot(_kaliReady, 'Kali'),
+          const SizedBox(width: 8),
+          _statusDot(true, 'Net'),
+          const SizedBox(width: 16),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // معلومات الحالة
+            Row(
+              children: [
+                _infoCard('Kali', _kaliReady ? '$_toolCount أداة' : 'غير مثبت', _kaliReady ? Colors.green : Colors.red),
+                const SizedBox(width: 12),
+                _infoCard('الشبكة', 'متصل', Colors.green),
+                const SizedBox(width: 12),
+                _infoCard('الهدف', _targetController.text, Colors.cyan),
+              ],
+            ),
+            const SizedBox(height: 16),
             // حقل الهدف
             TextField(
               controller: _targetController,
@@ -45,58 +82,78 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 prefixIcon: Icon(Icons.language, color: Color(0xFF00FF41)),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // أزرار سريعة
-            const Text('⚡ أوامر سريعة', style: TextStyle(color: Color(0xFF00FF41), fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _quickBtn('فحص المنافذ', 'port_scan'),
-                _quickBtn('Ping', 'ping'),
-                _quickBtn('DNS', 'dns_lookup'),
-                _quickBtn('HTTP Headers', 'http_headers'),
-                _quickBtn('معلومات النظام', 'system_info'),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // شريط التحميل
             if (_loading) const LinearProgressIndicator(color: Color(0xFF00FF41)),
-            const SizedBox(height: 16),
-
-            // منطقة الإخراج (ترمينال مصغر)
-            const Text('📟 المخرجات', style: TextStyle(color: Color(0xFF00FF41), fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              height: 250,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A0E0A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF1A3A1A)),
-              ),
-              child: SingleChildScrollView(
-                child: Text(
-                  _output.isNotEmpty ? _output : 'جاهز... \nاكتب أمر أو اضغط على أحد الأزرار أعلاه',
-                  style: const TextStyle(color: Color(0xFF00FF41), fontFamily: 'monospace', fontSize: 13),
+            // منطقة الإخراج
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0A0E0A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF1A3A1A)),
+                ),
+                child: SingleChildScrollView(
+                  child: Text(_output, style: const TextStyle(color: Color(0xFF00FF41), fontFamily: 'monospace', fontSize: 12)),
                 ),
               ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              _btn('تثبيت', 'kali_install', Colors.orange),
+              _btn('Nmap', 'nmap', Colors.blue),
+              _btn('SQLmap', 'sqlmap', Colors.purple),
+              _btn('MSF', 'msfconsole', Colors.red),
+              _btn('Hydra', 'hydra', Colors.teal),
+              _btn('Shell', 'kali_shell', Colors.grey),
+              _btn('حالة', 'kali_status', Colors.green),
+              _btn('مساعدة', 'help', Colors.white70),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _quickBtn(String label, String command) {
-    return ElevatedButton.icon(
-      onPressed: () => _execute(command),
-      icon: const Icon(Icons.play_arrow, size: 18),
-      label: Text(label, style: const TextStyle(fontSize: 13)),
+  Widget _statusDot(bool active, String label) {
+    return Tooltip(
+      message: label,
+      child: Container(
+        width: 10, height: 10,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: active ? Colors.green : Colors.red),
+      ),
     );
   }
+
+  Widget _infoCard(String title, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: const Color(0xFF0A0E0A), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withOpacity(0.3))),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: TextStyle(color: color, fontSize: 12, fontFamily: 'Cairo')),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'monospace')),
+        ]),
+      ),
+    );
+  }
+
+  Widget _btn(String label, String command, Color color) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(backgroundColor: color.withOpacity(0.8), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
+      onPressed: () => _execute(command),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontFamily: 'Cairo', fontSize: 12)),
+    ),
+  );
 }
