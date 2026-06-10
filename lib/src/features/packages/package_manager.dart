@@ -102,7 +102,7 @@ class _PackageManagerState extends State<PackageManager> {
                       color: Colors.grey.shade900,
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       child: ListTile(
-                        leading: const Icon(Icons.package, color: Colors.indigo),
+                        leading: const Icon(Icons.archive, color: Colors.indigo),
                         title: Text(_filteredPackages[i]['name']!, style: const TextStyle(color: Colors.white)),
                         subtitle: Text(
                           '${_filteredPackages[i]['version']}\n${_filteredPackages[i]['description']}',

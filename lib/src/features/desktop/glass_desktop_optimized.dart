@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import '../settings/main_settings.dart';
 import '../wifi/zion_wifi_panel.dart';
 import '../si/si_control_panel.dart';
@@ -28,17 +29,13 @@ class GlassDesktopOptimized extends StatefulWidget {
   State<GlassDesktopOptimized> createState() => _GlassDesktopOptimizedState();
 }
 
-class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> with TickerProviderStateMixin {
+class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> {
   final List<DesktopWindow> _windows = [];
   int _nextWindowId = 1;
   DateTime _currentTime = DateTime.now();
   bool _menuOpen = false;
   int? _draggingWindowId;
   Offset? _dragStart;
-  final GlobalKey _taskbarKey = GlobalKey();
-  
-  // تحسين الأداء: استخدام ValueNotifier بدلاً من setState المتكرر
-  final ValueNotifier<List<DesktopWindow>> _windowsNotifier = ValueNotifier([]);
   late Timer _clockTimer;
 
   @override
@@ -47,31 +44,24 @@ class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> with Tick
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) setState(() => _currentTime = DateTime.now());
     });
-    _loadSavedWindows();
-  }
-
-  Future<void> _loadSavedWindows() async {
-    final prefs = await SharedPreferences.getInstance();
-    // تحميل النوافذ المحفوظة (اختياري)
   }
 
   void _openWindow(String title, Widget content, {Size size = const Size(850, 650)}) {
-    final newWindow = DesktopWindow(
-      id: _nextWindowId++,
-      title: title,
-      content: content,
-      position: Offset(50 + (_windows.length % 5) * 30, 50 + (_windows.length % 5) * 30),
-      size: size,
-      isMinimized: false,
-      isMaximized: false,
-    );
-    setState(() => _windows.add(newWindow));
-    _windowsNotifier.value = _windows;
+    setState(() {
+      _windows.add(DesktopWindow(
+        id: _nextWindowId++,
+        title: title,
+        content: content,
+        position: Offset(50 + (_windows.length % 5) * 30, 50 + (_windows.length % 5) * 30),
+        size: size,
+        isMinimized: false,
+        isMaximized: false,
+      ));
+    });
   }
 
   void _closeWindow(int id) {
     setState(() => _windows.removeWhere((w) => w.id == id));
-    _windowsNotifier.value = _windows;
   }
 
   void _minimizeWindow(int id) {
@@ -143,7 +133,6 @@ class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> with Tick
   @override
   void dispose() {
     _clockTimer.cancel();
-    _windowsNotifier.dispose();
     super.dispose();
   }
 
@@ -222,8 +211,7 @@ class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> with Tick
   }
 
   Widget _buildWindow(DesktopWindow w) {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 200),
+    return Positioned(
       left: w.position.dx.clamp(0, MediaQuery.of(context).size.width - 100),
       top: w.position.dy.clamp(0, MediaQuery.of(context).size.height - 100),
       child: GestureDetector(
@@ -307,16 +295,15 @@ class _GlassDesktopOptimizedState extends State<GlassDesktopOptimized> with Tick
   }
 
   Widget _buildStartMenu() {
-    final menuItems = [
-      {'icon': Icons.terminal, 'title': 'Terminal', 'widget': const CosmicTerminal()},
-      {'icon': Icons.wifi, 'title': 'WiFi', 'widget': const ZionWifiPanel()},
-      {'icon': Icons.psychology, 'title': 'SI Agent', 'widget': const SIControlPanel()},
-      {'icon': Icons.folder, 'title': 'File Manager', 'widget': const ZionFileManager()},
-      {'icon': Icons.public, 'title': 'Browser', 'widget': const ZionBrowser()},
-      {'icon': Icons.edit, 'title': 'Editor', 'widget': const ZionTextEditor()},
-      {'icon': Icons.settings, 'title': 'Settings', 'widget': const MainSettings()},
-      const Divider(color: Colors.white24),
-      {'icon': Icons.exit_to_app, 'title': 'Exit', 'widget': null, 'color': Colors.red},
+    final List<Map<String, dynamic>> menuItems = [
+      {'icon': Icons.terminal, 'title': 'Terminal', 'widget': const CosmicTerminal(), 'color': Colors.green},
+      {'icon': Icons.wifi, 'title': 'WiFi', 'widget': const ZionWifiPanel(), 'color': Colors.blue},
+      {'icon': Icons.psychology, 'title': 'SI Agent', 'widget': const SIControlPanel(), 'color': Colors.purple},
+      {'icon': Icons.folder, 'title': 'File Manager', 'widget': const ZionFileManager(), 'color': Colors.orange},
+      {'icon': Icons.public, 'title': 'Browser', 'widget': const ZionBrowser(), 'color': Colors.teal},
+      {'icon': Icons.edit, 'title': 'Editor', 'widget': const ZionTextEditor(), 'color': Colors.pink},
+      {'icon': Icons.settings, 'title': 'Settings', 'widget': const MainSettings(), 'color': Colors.grey},
+      const {'icon': Icons.exit_to_app, 'title': 'Exit', 'color': Colors.red},
     ];
 
     return Positioned(
@@ -513,6 +500,3 @@ class DesktopWindow {
     required this.isMaximized,
   }) : savedSize = size, savedPosition = position;
 }
-
-// إضافة الأيقونة الجديدة في قائمة desktop icons
-{'icon': Icons.analytics, 'label': 'Metrics', 'widget': const ZionMetricsDashboard(), 'color': Colors.cyan},

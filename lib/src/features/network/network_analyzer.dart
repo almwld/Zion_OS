@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'dart:async';
 
 class NetworkAnalyzer extends StatefulWidget {
@@ -55,7 +56,7 @@ class _NetworkAnalyzerState extends State<NetworkAnalyzer> {
       final client = HttpClient();
       final request = await client.getUrl(Uri.parse('https://api.ipify.org'));
       final response = await request.close();
-      final data = await response.transform(utf8.decoder).join();
+      final data = await response.transform(const Utf8Decoder()).join();
       client.close();
       return data.trim();
     } catch (_) {

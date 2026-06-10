@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:io';
 
 class SystemMonitor extends StatefulWidget {
@@ -135,8 +136,6 @@ class _SystemMonitorState extends State<SystemMonitor> {
               value: value / 100,
               backgroundColor: Colors.grey.shade800,
               color: color,
-              height: 10,
-              borderRadius: BorderRadius.circular(5),
             ),
           ],
         ),
