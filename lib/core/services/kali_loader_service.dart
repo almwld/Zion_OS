@@ -317,6 +317,3 @@ class KaliLoaderService {
   }
 }
 
-  static Future<bool> isAvailable() async {
-    return await _isInstalled();
-  }
