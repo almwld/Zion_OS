@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import '../../core/theme/theme_engine.dart';
 import '../../widgets/zion_widgets.dart';
 import '../settings/zion_settings.dart';
@@ -13,21 +12,18 @@ class GlassDesktop extends StatefulWidget {
   State<GlassDesktop> createState() => _GlassDesktopState();
 }
 
-class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMixin {
+class _GlassDesktopState extends State<GlassDesktop> {
   final ThemeEngine _theme = ThemeEngine();
   final List<GlassWindow> _windows = [];
   int _nextWindowId = 1;
   DateTime _currentTime = DateTime.now();
-  late AnimationController _menuController;
-  late Animation<double> _menuAnimation;
   bool _menuOpen = false;
 
   @override
   void initState() {
     super.initState();
+    _theme.loadSettings();
     _updateTime();
-    _menuController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _menuAnimation = CurvedAnimation(parent: _menuController, curve: Curves.easeOutBack);
   }
 
   void _updateTime() {
@@ -67,11 +63,6 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
 
   void _toggleMenu() {
     setState(() => _menuOpen = !_menuOpen);
-    if (_menuOpen) {
-      _menuController.forward();
-    } else {
-      _menuController.reverse();
-    }
   }
 
   @override
@@ -83,7 +74,7 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
         child: Stack(
           children: [
             _buildMatrixRain(),
-            _buildDock(),
+            _buildDesktopIcons(),
             ..._windows.map((w) => _buildGlassWindow(w)),
             _buildStartMenu(),
             _buildTaskbar(),
@@ -98,7 +89,7 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
       shaderCallback: (rect) => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
+        colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
       ).createShader(rect),
       blendMode: BlendMode.darken,
       child: Container(
@@ -106,10 +97,7 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              _theme.currentTheme.accent.withValues(alpha: 0.1),
-              Colors.transparent,
-            ],
+            colors: [_theme.accent.withOpacity(0.1), Colors.transparent],
           ),
         ),
         child: const Center(
@@ -133,24 +121,21 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
           width: w.size.width,
           height: w.size.height,
           decoration: BoxDecoration(
-            color: _theme.currentTheme.background.withValues(alpha: 0.85),
+            color: _theme.background.withOpacity(0.85),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: _theme.currentTheme.accent.withValues(alpha: 0.3), width: 1),
+            border: Border.all(color: _theme.accent.withOpacity(0.3), width: 1),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
-              BoxShadow(color: _theme.currentTheme.accent.withValues(alpha: 0.1), blurRadius: 30, spreadRadius: 5),
+              BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20),
+              BoxShadow(color: _theme.accent.withOpacity(0.1), blurRadius: 30),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Column(
-                children: [
-                  _buildWindowTitleBar(w),
-                  Expanded(child: w.content),
-                ],
-              ),
+            child: Column(
+              children: [
+                _buildWindowTitleBar(w),
+                Expanded(child: w.content),
+              ],
             ),
           ),
         ),
@@ -163,9 +148,9 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: _theme.currentTheme.accent.withValues(alpha: 0.1),
+        color: _theme.accent.withOpacity(0.1),
         borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-        border: Border(bottom: BorderSide(color: _theme.currentTheme.accent.withValues(alpha: 0.2))),
+        border: Border(bottom: BorderSide(color: _theme.accent.withOpacity(0.2))),
       ),
       child: Row(
         children: [
@@ -179,7 +164,7 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
             ],
           ),
           const SizedBox(width: 16),
-          Text(w.title, style: TextStyle(color: _theme.currentTheme.accent, fontSize: 14, fontWeight: FontWeight.w500)),
+          Text(w.title, style: TextStyle(color: _theme.accent, fontSize: 14)),
           const Spacer(),
           ZionIcon(icon: Icons.refresh, size: 16, onTap: () {}),
           const SizedBox(width: 8),
@@ -200,55 +185,51 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 4)],
+          boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 4)],
         ),
       ),
     );
   }
 
-  Widget _buildDock() {
+  Widget _buildDesktopIcons() {
     final icons = [
       {'icon': Icons.terminal, 'label': 'Terminal', 'widget': const CosmicTerminal()},
       {'icon': Icons.wifi, 'label': 'WiFi', 'widget': const ZionWifiPanel()},
-      {'icon': Icons.psychology, 'label': 'SI Agent', 'widget': const Center(child: Text('SI Agent'))},
+      {'icon': Icons.psychology, 'label': 'SI Agent', 'widget': const Center(child: Text('SI Agent', style: TextStyle(color: Colors.white)))},
       {'icon': Icons.settings, 'label': 'Settings', 'widget': const ZionSettings()},
     ];
 
-    return Positioned(
-      bottom: 80,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _theme.currentTheme.background.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: _theme.currentTheme.accent.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: icons.map((icon) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: GestureDetector(
-                    onTap: () => _openWindow(icon['label'] as String, icon['widget'] as Widget),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ZionIcon(icon: icon['icon'] as IconData, size: 28),
-                        const SizedBox(height: 4),
-                        Text(icon['label'] as String, style: TextStyle(color: Colors.white70, fontSize: 10)),
-                      ],
+    return Positioned.fill(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 40),
+            Wrap(
+              spacing: 30,
+              runSpacing: 30,
+              children: icons.map((icon) => GestureDetector(
+                onTap: () => _openWindow(icon['label'] as String, icon['widget'] as Widget),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _theme.accent, width: 1),
+                      ),
+                      child: Icon(icon['icon'] as IconData, color: _theme.accent, size: 32),
                     ),
-                  ),
-                )).toList(),
-              ),
+                    const SizedBox(height: 8),
+                    Text(icon['label'] as String, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+              )).toList(),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -256,58 +237,48 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
 
   Widget _buildStartMenu() {
     if (!_menuOpen) return const SizedBox.shrink();
-    
+
     return Positioned(
       bottom: 70,
       left: 16,
-      child: ScaleTransition(
-        scale: _menuAnimation,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              width: 320,
+      child: Container(
+        width: 280,
+        decoration: BoxDecoration(
+          color: _theme.background.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _theme.accent),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _theme.currentTheme.background.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _theme.currentTheme.accent.withValues(alpha: 0.3)),
+                color: _theme.accent.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: _theme.currentTheme.accent.withValues(alpha: 0.1),
-                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                    ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(radius: 30, backgroundColor: Colors.green, child: Icon(Icons.person, color: Colors.white, size: 30)),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Zion User', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text('zion@os', style: TextStyle(color: Colors.white70)),
-                          ],
-                        ),
-                      ],
-                    ),
+              child: Row(
+                children: const [
+                  CircleAvatar(radius: 24, backgroundColor: Colors.green, child: Icon(Icons.person, color: Colors.white)),
+                  SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Zion User', style: TextStyle(color: Colors.white)),
+                      Text('zion@os', style: TextStyle(color: Colors.white70)),
+                    ],
                   ),
-                  const Divider(color: Colors.white24),
-                  _buildMenuItem(Icons.terminal, 'Terminal', () => _openWindow('Terminal', const CosmicTerminal())),
-                  _buildMenuItem(Icons.wifi, 'WiFi Panel', () => _openWindow('WiFi', const ZionWifiPanel())),
-                  _buildMenuItem(Icons.psychology, 'SI Agent', () => _openWindow('SI Agent', const Center(child: Text('SI Agent')))),
-                  _buildMenuItem(Icons.settings, 'Settings', () => _openWindow('Settings', const ZionSettings())),
-                  const Divider(color: Colors.white24),
-                  _buildMenuItem(Icons.exit_to_app, 'Lock Screen', () {}),
-                  _buildMenuItem(Icons.power_settings_new, 'Shutdown', () => Navigator.pop(context), color: Colors.red),
                 ],
               ),
             ),
-          ),
+            const Divider(color: Colors.white24),
+            _buildMenuItem(Icons.terminal, 'Terminal', () => _openWindow('Terminal', const CosmicTerminal())),
+            _buildMenuItem(Icons.wifi, 'WiFi', () => _openWindow('WiFi', const ZionWifiPanel())),
+            _buildMenuItem(Icons.psychology, 'SI Agent', () => _openWindow('SI Agent', const Center(child: Text('SI Agent')))),
+            _buildMenuItem(Icons.settings, 'Settings', () => _openWindow('Settings', const ZionSettings())),
+            const Divider(color: Colors.white24),
+            _buildMenuItem(Icons.exit_to_app, 'Exit', () => Navigator.pop(context), color: Colors.red),
+          ],
         ),
       ),
     );
@@ -315,7 +286,7 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
 
   Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap, {Color? color}) {
     return ListTile(
-      leading: ZionIcon(icon: icon, size: 20),
+      leading: Icon(icon, color: _theme.accent),
       title: Text(title, style: TextStyle(color: color ?? Colors.white)),
       onTap: () {
         _toggleMenu();
@@ -330,25 +301,23 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
       left: 0,
       right: 0,
       child: Container(
-        height: 60,
+        height: 50,
         decoration: BoxDecoration(
-          color: _theme.currentTheme.background.withValues(alpha: 0.85),
-          border: Border(top: BorderSide(color: _theme.currentTheme.accent.withValues(alpha: 0.3))),
+          color: _theme.background.withOpacity(0.85),
+          border: Border(top: BorderSide(color: _theme.accent.withOpacity(0.3))),
         ),
         child: Row(
           children: [
             GestureDetector(
               onTap: _toggleMenu,
               child: Container(
-                width: 70,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [_theme.currentTheme.accent, _theme.currentTheme.accent.withValues(alpha: 0.7)]),
-                ),
-                child: const Icon(Icons.menu, color: Colors.white, size: 30),
+                width: 60,
+                height: 50,
+                decoration: BoxDecoration(gradient: LinearGradient(colors: [_theme.accent, _theme.accent.withOpacity(0.7)])),
+                child: const Icon(Icons.menu, color: Colors.white, size: 28),
               ),
             ),
-            Expanded(child: Container()),
+            const Expanded(child: SizedBox()),
             _buildSystemTray(),
             _buildClock(),
           ],
@@ -359,13 +328,13 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
 
   Widget _buildSystemTray() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           ZionIcon(icon: Icons.battery_full, size: 18),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           ZionIcon(icon: Icons.wifi, size: 18),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           ZionIcon(icon: Icons.volume_up, size: 18),
         ],
       ),
@@ -374,12 +343,12 @@ class _GlassDesktopState extends State<GlassDesktop> with TickerProviderStateMix
 
   Widget _buildClock() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(_formatTime(_currentTime), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-          Text(_formatDate(_currentTime), style: const TextStyle(color: Colors.white70, fontSize: 10)),
+          Text(_formatTime(_currentTime), style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Text(_formatDate(_currentTime), style: const TextStyle(color: Colors.white70, fontSize: 9)),
         ],
       ),
     );
