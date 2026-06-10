@@ -26,11 +26,36 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Generate launcher icons
+        run: flutter pub run flutter_launcher_icons:main
       
-      - name: Upload APK
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi
+      
+      - name: Create ZIP archives for each architecture
+        run: |
+          mkdir -p build/outputs/zipped
+          cd build/app/outputs/flutter-apk
+          for apk in app-*.apk; do
+            arch=$(echo "$apk" | sed 's/app-//' | sed 's/-release.apk//')
+            zip "../../outputs/zipped/project_zion_${arch}.zip" "$apk"
+          done
+          cd -
+      
+      - name: Upload ZIP - armeabi-v7a
         uses: actions/upload-artifact@v4
         with:
-          name: project-zion-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: project-zion-armeabi-v7a
+          path: build/outputs/zipped/project_zion_armeabi-v7a.zip
+      
+      - name: Upload ZIP - arm64-v8a
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zion-arm64-v8a
+          path: build/outputs/zipped/project_zion_arm64-v8a.zip
+      
+      - name: Upload ZIP - universal
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zion-universal
+          path: build/outputs/zipped/project_zion_universal.zip
