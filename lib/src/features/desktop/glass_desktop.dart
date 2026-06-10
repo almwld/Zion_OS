@@ -442,3 +442,9 @@ class DesktopWindow {
     required this.isMaximized,
   }) : savedSize = size, savedPosition = position;
 }
+
+// إضافة أيقونات جديدة في _buildDesktopIcons
+// أضف داخل قائمة icons:
+      {'icon': Icons.folder, 'label': 'Files', 'widget': const ZionFileManager()},
+      {'icon': Icons.public, 'label': 'Browser', 'widget': const ZionBrowser()},
+      {'icon': Icons.edit, 'label': 'Editor', 'widget': const ZionTextEditor()},
