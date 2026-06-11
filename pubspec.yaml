@@ -76,3 +76,6 @@ flutter_launcher_icons:
   local_auth: ^2.1.6
 
   flutter_local_notifications: ^16.3.0
+
+  mobile_scanner: ^4.0.1
+  qr_flutter: ^4.1.0
