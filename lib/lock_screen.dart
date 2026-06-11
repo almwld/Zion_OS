@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'services/preferences_service.dart';
+import 'services/biometric_service.dart';
 import 'responsive_desktop.dart';
 
 class LockScreen extends StatefulWidget {
@@ -15,20 +16,42 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final BiometricService _biometricService = BiometricService();
   String _enteredPin = '';
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _biometricAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _checkAndSetDefaultPin();
+    _checkBiometricAvailability();
   }
 
   Future<void> _checkAndSetDefaultPin() async {
     String? savedPin = await _secureStorage.read(key: 'user_pin');
     if (savedPin == null) {
       await _secureStorage.write(key: 'user_pin', value: '1234');
+    }
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final prefs = Provider.of<PreferencesService>(context, listen: false);
+    if (prefs.useBiometric) {
+      _biometricAvailable = await _biometricService.isBiometricAvailable();
+      if (_biometricAvailable && mounted) {
+        _authenticateWithBiometrics();
+      }
+    }
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    final authenticated = await _biometricService.authenticateWithBiometrics(
+      reason: 'الرجاء استخدام البصمة لفتح Zion OS',
+    );
+    if (authenticated && mounted) {
+      _unlockAndNavigate();
     }
   }
 
@@ -43,12 +66,7 @@ class _LockScreenState extends State<LockScreen> {
     String? savedPin = await _secureStorage.read(key: 'user_pin');
     
     if (_enteredPin == savedPin) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ResponsiveDesktop()),
-        );
-      }
+      _unlockAndNavigate();
     } else {
       setState(() {
         _errorMessage = 'pin_incorrect'.tr();
@@ -58,12 +76,22 @@ class _LockScreenState extends State<LockScreen> {
     }
   }
 
+  void _unlockAndNavigate() {
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ResponsiveDesktop()),
+      );
+    }
+  }
+
   void _addDigit(String digit) {
-    if (_enteredPin.length < 6) {
+    final prefs = Provider.of<PreferencesService>(context, listen: false);
+    if (_enteredPin.length < prefs.pinLength) {
       setState(() {
         _enteredPin += digit;
       });
-      if (_enteredPin.length == 4 || _enteredPin.length == 6) {
+      if (_enteredPin.length == prefs.pinLength) {
         _verifyPin();
       }
     }
@@ -98,43 +126,57 @@ class _LockScreenState extends State<LockScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // شعار Z
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Colors.cyan, Colors.teal],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.cyan.withOpacity(0.5),
-                      blurRadius: 20,
-                      spreadRadius: 5,
+              TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0.8, end: 1.0),
+                duration: const Duration(milliseconds: 500),
+                builder: (context, double scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Colors.cyan, Colors.teal],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.cyan.withOpacity(0.5),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Z',
+                          style: TextStyle(
+                            fontSize: 60,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Z',
-                    style: TextStyle(
-                      fontSize: 60,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 40),
               
               // الساعة
-              Text(
-                DateFormat('HH:mm').format(DateTime.now()),
-                style: TextStyle(
-                  fontSize: 48 * prefs.fontScale,
-                  fontWeight: FontWeight.bold,
-                  color: prefs.isDarkMode ? Colors.white : Colors.black,
-                ),
+              AnimatedBuilder(
+                animation: Stream.periodic(const Duration(seconds: 1)),
+                builder: (context, _) {
+                  return Text(
+                    DateFormat('HH:mm').format(DateTime.now()),
+                    style: TextStyle(
+                      fontSize: 48 * prefs.fontScale,
+                      fontWeight: FontWeight.bold,
+                      color: prefs.isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 10),
               
@@ -149,26 +191,31 @@ class _LockScreenState extends State<LockScreen> {
               const SizedBox(height: 50),
               
               // نقاط PIN
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  4,
-                  (index) => Container(
-                    width: 20,
-                    height: 20,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: index < _enteredPin.length
-                          ? (prefs.isDarkMode ? Colors.white : Colors.black)
-                          : Colors.transparent,
-                      border: Border.all(
-                        color: prefs.isDarkMode ? Colors.white54 : Colors.black54,
-                        width: 2,
+              Consumer<PreferencesService>(
+                builder: (context, prefs, _) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      prefs.pinLength,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 20,
+                        height: 20,
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: index < _enteredPin.length
+                              ? (prefs.isDarkMode ? Colors.white : Colors.black)
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: prefs.isDarkMode ? Colors.white54 : Colors.black54,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               
               if (_errorMessage.isNotEmpty) ...[
@@ -183,6 +230,20 @@ class _LockScreenState extends State<LockScreen> {
               
               // لوحة الأرقام
               _buildNumberPad(prefs),
+              
+              // زر البصمة
+              if (_biometricAvailable && prefs.useBiometric)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: IconButton(
+                    onPressed: _authenticateWithBiometrics,
+                    icon: Icon(
+                      Icons.fingerprint,
+                      size: 40,
+                      color: prefs.isDarkMode ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

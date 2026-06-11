@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'services/preferences_service.dart';
+import 'services/notification_service.dart';
 import 'lock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await PreferencesService().init();
+  await NotificationService().init();
   
   runApp(
     EasyLocalization(
@@ -52,15 +54,26 @@ class ZionOSApp extends StatelessWidget {
     return ThemeData(
       brightness: isDark ? Brightness.dark : Brightness.light,
       primaryColor: primaryColor,
+      useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: isDark ? Brightness.dark : Brightness.light,
       ),
-      scaffoldBackgroundColor: isDark ? Colors.black : Colors.grey[100],
+      scaffoldBackgroundColor: isDark ? Colors.black : Colors.grey[50],
       appBarTheme: AppBarTheme(
         backgroundColor: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8),
         elevation: 0,
         centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 18 * prefs.fontScale,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black,
+        ),
+      ),
+      textTheme: TextTheme(
+        bodyLarge: TextStyle(fontSize: 14 * prefs.fontScale),
+        bodyMedium: TextStyle(fontSize: 12 * prefs.fontScale),
+        titleLarge: TextStyle(fontSize: 18 * prefs.fontScale, fontWeight: FontWeight.bold),
       ),
     );
   }
