@@ -31,6 +31,7 @@ import 'apps/calendar_simple.dart';
 import 'apps/gallery_simple.dart';
 import 'apps/documents_simple.dart';
 import 'apps/system_monitor.dart';
+import 'apps/task_manager.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -90,6 +91,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "GALLERY", "icon": Icons.photo_library, "category": "TOOLS", "screen": const GalleryApp()},
     {"name": "DOCUMENTS", "icon": Icons.description, "category": "TOOLS", "screen": const DocumentsApp()},
     {"name": "MONITOR", "icon": Icons.assessment, "category": "TOOLS", "screen": const SystemMonitorApp()},
+    {"name": "TASKS", "icon": Icons.list_alt, "category": "TOOLS", "screen": const TaskManagerApp()},
   ];
 
   @override
