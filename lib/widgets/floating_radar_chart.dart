@@ -17,8 +17,6 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
   Offset _position = Offset.zero;
   double _width = 280;
   double _height = 280;
-  bool _isDragging = false;
-  bool _isResizing = false;
   
   // Data values (12 metrics)
   Map<String, double> _metrics = {
@@ -87,7 +85,6 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
       _metrics['Security'] = _getSecurityScore();
       _metrics['Performance'] = _getPerformanceScore();
       
-      // Clamp values between 0 and 1
       for (var key in _metrics.keys) {
         _metrics[key] = _metrics[key]!.clamp(0.0, 1.0);
       }
@@ -142,7 +139,6 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
   }
 
   double _getNetworkLoad() {
-    // محاكاة حركة الشبكة
     return 0.2 + (DateTime.now().second % 80) / 100;
   }
 
@@ -169,7 +165,6 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
     try {
       final result = Process.runSync('cat', ['/proc/uptime'], runInShell: true);
       final uptime = double.parse(result.stdout.toString().split(' ')[0]);
-      // افتراض أقصى uptime 7 أيام = 604800 ثانية
       return (uptime / 604800).clamp(0.0, 1.0);
     } catch (_) {
       return 0.1;
@@ -177,22 +172,18 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
   }
 
   double _getDiskIO() {
-    // محاكاة
     return 0.15 + (DateTime.now().millisecond % 30) / 100;
   }
 
   double _getGPULoad() {
-    // محاكاة
     return 0.2 + (DateTime.now().second % 50) / 100;
   }
 
   double _getSecurityScore() {
-    // محاكاة
     return 0.85;
   }
 
   double _getPerformanceScore() {
-    // متوسط الأداء
     return 0.7;
   }
 
@@ -229,7 +220,6 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
                 onPanUpdate: (details) {
                   setState(() {
                     _position += details.delta;
-                    // حدود الشاشة
                     _position = Offset(
                       _position.dx.clamp(0, MediaQuery.of(context).size.width - _width),
                       _position.dy.clamp(0, MediaQuery.of(context).size.height - _height - 50),
@@ -254,7 +244,12 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
                       const Spacer(),
                       // زر تصغير (Collapse)
                       GestureDetector(
-                        onTap: () => setState(() => _width = 48, _height = 48),
+                        onTap: () {
+                          setState(() {
+                            _width = 48;
+                            _height = 48;
+                          });
+                        },
                         child: const Icon(Icons.minimize, color: Color(0xFF00BCD4), size: 18),
                       ),
                       const SizedBox(width: 8),
@@ -296,16 +291,8 @@ class _FloatingRadarChartState extends State<FloatingRadarChart> {
                         return RadarChartTitle(
                           text: _titles[index],
                           angle: angle,
-                          style: TextStyle(
-                            color: _colors[index % _colors.length],
-                            fontSize: _width < 200 ? 8 : 10,
-                            fontWeight: FontWeight.w500,
-                          ),
                         );
                       },
-                      ticks: const [0.25, 0.5, 0.75, 1.0],
-                      tickBorderData: const BorderSide(color: Color(0xFF00BCD4), width: 0.5),
-                      tickTextStyle: const TextStyle(color: Colors.white38, fontSize: 8),
                     ),
                   ),
                 ),
