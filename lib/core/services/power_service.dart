@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:battery_plus/battery_plus.dart';
 
 class PowerService extends ChangeNotifier {
@@ -145,6 +146,7 @@ class PowerService extends ChangeNotifier {
     return Colors.red;
   }
   
+  @override
   void dispose() {
     _monitorTimer?.cancel();
     super.dispose();

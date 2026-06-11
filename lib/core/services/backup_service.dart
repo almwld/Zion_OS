@@ -73,7 +73,15 @@ class BackupService {
       int restored = 0;
       
       for (final entry in backupData.entries) {
-        await prefs.set(entry.key, entry.value);
+        if (entry.value is bool) {
+          await prefs.setBool(entry.key, entry.value);
+        } else if (entry.value is String) {
+          await prefs.setString(entry.key, entry.value);
+        } else if (entry.value is int) {
+          await prefs.setInt(entry.key, entry.value);
+        } else if (entry.value is double) {
+          await prefs.setDouble(entry.key, entry.value);
+        }
         restored++;
       }
       

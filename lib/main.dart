@@ -57,9 +57,9 @@ class ZionOSApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: notificationService),
         ChangeNotifierProvider.value(value: powerService),
-        ChangeNotifierProvider.value(value: networkService),
         ChangeNotifierProvider(create: (_) => ThemeManager()),
         Provider.value(value: backupService),
+        Provider.value(value: networkService),
         Provider.value(value: loggingService),
         Provider.value(value: browserService),
       ],
