@@ -45,6 +45,7 @@ class ZionOS extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/lock': (context) => const LockScreen(),
         '/home': (context) => const ResponsiveDesktop(),
+        '/file_manager': (context) => const AdvancedFileManager(),
       },
     );
   }
