@@ -41,6 +41,7 @@ import 'apps/performance_monitor.dart';
 import 'apps/battery_saver.dart';
 import 'apps/backup_manager.dart';
 import 'apps/cleaner.dart';
+import 'apps/app_lock.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -110,6 +111,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "BATTERY", "icon": Icons.battery_charging_full, "category": "TOOLS", "screen": const BatterySaverApp()},
     {"name": "BACKUP", "icon": Icons.backup, "category": "TOOLS", "screen": const BackupManagerApp()},
     {"name": "CLEANER", "icon": Icons.cleaning_services, "category": "TOOLS", "screen": const CleanerApp()},
+    {"name": "APP LOCK", "icon": Icons.lock, "category": "TOOLS", "screen": const AppLockApp()},
   ];
 
   @override
