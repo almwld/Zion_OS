@@ -12,13 +12,11 @@ class _DataUsageAppState extends State<DataUsageApp> {
   int _selectedPeriod = 0;
   final List<String> _periods = ['Today', 'Week', 'Month'];
   
-  // بيانات الاستخدام
-  double _mobileData = 0;
-  double _wifiData = 0;
-  double _totalData = 0;
-  double _remainingData = 0;
+  double _mobileData = 2.5;
+  double _wifiData = 5.8;
+  double _totalData = 8.3;
+  double _remainingData = 8.2;
   
-  // استخدام التطبيقات
   final List<Map<String, dynamic>> _appUsage = [
     {'name': 'Browser', 'usage': 1.2, 'color': 0xFF00BCD4},
     {'name': 'Email', 'usage': 0.5, 'color': 0xFF2196F3},
@@ -28,7 +26,6 @@ class _DataUsageAppState extends State<DataUsageApp> {
     {'name': 'Translator', 'usage': 0.2, 'color': 0xFFE91E63},
   ];
   
-  // استخدام اليومي
   final List<Map<String, dynamic>> _dailyUsage = [
     {'day': 'Mon', 'usage': 0.8},
     {'day': 'Tue', 'usage': 1.2},
@@ -39,25 +36,12 @@ class _DataUsageAppState extends State<DataUsageApp> {
     {'day': 'Sun', 'usage': 1.3},
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  void _loadData() {
-    _mobileData = 2.5;
-    _wifiData = 5.8;
-    _totalData = _mobileData + _wifiData;
-    _remainingData = 8.2;
-  }
-
   List<BarChartGroupData> _getBarData() {
     return _dailyUsage.asMap().entries.map((entry) {
       return BarChartGroupData(
         x: entry.key,
-        barRodStackItems: [
-          BarRodStackItem(0, toY: 
+        barRods: [
+          BarChartRodData(
             toY: entry.value['usage'],
             color: const Color(0xFF00BCD4),
             width: 20,
@@ -95,12 +79,6 @@ class _DataUsageAppState extends State<DataUsageApp> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
-            onPressed: _loadData,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -269,38 +247,6 @@ class _DataUsageAppState extends State<DataUsageApp> {
                       ],
                     ),
                   )),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Data Saver Option
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00BCD4).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.data_saver_on, color: Color(0xFF00BCD4), size: 28),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Data Saver', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        const Text('Reduce data usage by compressing images', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: false,
-                    onChanged: (_) {},
-                    activeColor: const Color(0xFF00BCD4),
-                  ),
                 ],
               ),
             ),
