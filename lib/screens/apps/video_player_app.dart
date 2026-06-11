@@ -59,23 +59,39 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
       appBar: AppBar(
         title: const Text('Video Player', style: TextStyle(color: Color(0xFF00BCD4))),
         backgroundColor: Colors.black,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
           Container(
             height: 250,
             margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: const Color(0xFF00BCD4).withOpacity(0.3), blurRadius: 20)]),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: const Color(0xFF00BCD4).withOpacity(0.3), blurRadius: 20)],
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: _isInitialized
                   ? Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
-                        AspectRatio(aspectRatio: _controller!.value.aspectRatio, child: VideoPlayer(_controller!)),
+                        AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio,
+                          child: VideoPlayer(_controller!),
+                        ),
                         Container(
-                          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.7), Colors.transparent])),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                            ),
+                          ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -84,9 +100,15 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  IconButton(icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 32), onPressed: _isPlaying ? _pause : _play),
+                                  IconButton(
+                                    icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 32),
+                                    onPressed: _isPlaying ? _pause : _play,
+                                  ),
                                   const SizedBox(width: 20),
-                                  IconButton(icon: const Icon(Icons.replay, color: Colors.white, size: 28), onPressed: _replay),
+                                  IconButton(
+                                    icon: const Icon(Icons.replay, color: Colors.white, size: 28),
+                                    onPressed: _replay,
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -112,10 +134,13 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                     ],
                   ),
                 ),
-                IconButton(icon: const Icon(Icons.share, color: Color(0xFF00BCD4)), onPressed: () {
-                  Clipboard.setData(ClipboardData(text: _videos[_selectedVideoIndex]['url']));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('URL copied'), backgroundColor: Color(0xFF00BCD4)));
-                }),
+                IconButton(
+                  icon: const Icon(Icons.share, color: Color(0xFF00BCD4)),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: _videos[_selectedVideoIndex]['url']));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('URL copied'), backgroundColor: Color(0xFF00BCD4)));
+                  },
+                ),
               ],
             ),
           ),
@@ -136,10 +161,18 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                     border: Border.all(color: isSelected ? const Color(0xFF00BCD4) : const Color(0xFF00BCD4).withOpacity(0.3)),
                   ),
                   child: ListTile(
-                    leading: Container(width: 50, height: 50, decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.2), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.play_circle_filled, color: Color(0xFF00BCD4), size: 32)),
+                    leading: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.play_circle_filled, color: Color(0xFF00BCD4), size: 32),
+                    ),
                     title: Text(video['name'], style: const TextStyle(color: Colors.white)),
                     subtitle: Text('${video['duration']} • ${video['size']}', style: const TextStyle(color: Colors.white54)),
-                    trailing: IconButton(icon: const Icon(Icons.play_arrow, color: Color(0xFF00BCD4)), onPressed: () => _changeVideo(i)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.play_arrow, color: Color(0xFF00BCD4)),
+                      onPressed: () => _changeVideo(i),
+                    ),
                   ),
                 );
               },
