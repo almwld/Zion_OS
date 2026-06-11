@@ -1,22 +1,25 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'services/preferences_service.dart';
-import 'services/notification_service.dart';
 import 'lock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await PreferencesService().init();
-  await NotificationService().init();
   
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
+      supportedLocales: const [
+        Locale('ar', 'SA'),
+        Locale('en', 'US'),
+      ],
       path: 'assets/translations',
       fallbackLocale: const Locale('ar', 'SA'),
+      startLocale: const Locale('ar', 'SA'),
+      useFallbackTranslations: true,
       child: const ZionOSApp(),
     ),
   );
@@ -33,15 +36,17 @@ class ZionOSApp extends StatelessWidget {
       ],
       child: Consumer<PreferencesService>(
         builder: (context, prefs, _) {
+          final isArabic = EasyLocalization.of(context)?.locale.languageCode == 'ar';
+          
           return MaterialApp(
             title: 'Zion OS',
             debugShowCheckedModeBanner: false,
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
             themeMode: prefs.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             darkTheme: _buildTheme(true, prefs),
             theme: _buildTheme(false, prefs),
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
             home: const LockScreen(),
           );
         },
@@ -56,6 +61,7 @@ class ZionOSApp extends StatelessWidget {
       brightness: isDark ? Brightness.dark : Brightness.light,
       primaryColor: primaryColor,
       useMaterial3: true,
+      fontFamily: 'Cairo',
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: isDark ? Brightness.dark : Brightness.light,
