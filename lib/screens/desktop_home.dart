@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'apps/terminal_app.dart';
 import 'apps/network_scanner.dart';
 import 'apps/wifi_scanner.dart';
@@ -12,83 +13,120 @@ import 'apps/forensics.dart';
 import 'apps/database_hacking.dart';
 import 'apps/cloud_attacks.dart';
 
-void main() {
-  runApp(const ZionOSApp());
-}
-
-class ZionOSApp extends StatelessWidget {
-  const ZionOSApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ZION OS 2027',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-      ),
-      home: const ZionDesktop(),
-    );
-  }
-}
-
 class ZionDesktop extends StatelessWidget {
   const ZionDesktop({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = ResponsiveWrapper.of(context).isDesktop;
+    
     return Scaffold(
       body: Stack(
         children: [
-          // خلفية متدرجة - سوداء مع لمسات تركوازية
+          // خلفية متدرجة
           Container(
             decoration: const BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment.center,
                 radius: 1.2,
                 colors: [
-                  Color(0xFF0D2E3B), // تركواز داكن
-                  Color(0xFF061217), // أسود مائل للتركواز
+                  Color(0xFF0D2E3B),
+                  Color(0xFF061217),
                   Color(0xFF03090C),
                 ],
               ),
             ),
           ),
-          Column(
+          
+          // تخطيط مرن حسب حجم الشاشة
+          if (isDesktop)
+            _buildDesktopLayout()
+          else
+            _buildMobileLayout(),
+        ],
+      ),
+    );
+  }
+
+  // ============================================
+  // تخطيط سطح المكتب - مثل GNOME بالضبط
+  // ============================================
+  Widget _buildDesktopLayout() {
+    return Column(
+      children: [
+        const TopBar(),
+        Expanded(
+          child: Row(
             children: [
-              const ZionTopBar(),
+              // الشريط الجانبي الأيسر (Activities)
+              const LeftSidebar(),
+              
+              // المحتوى الرئيسي
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      const ZionSearchBar(),
-                      const SizedBox(height: 25),
+                      const SearchBar(),
+                      const SizedBox(height: 30),
                       const WorkspacesPreview(),
-                      const SizedBox(height: 35),
-                      const Expanded(child: ZionAppGrid()),
+                      const SizedBox(height: 40),
+                      const Expanded(child: AppGrid()),
                       const PageIndicator(),
                       const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
-              const ZionDock(),
-              const SizedBox(height: 15),
+              
+              // الشريط الجانبي الأيمن (الإشعارات)
+              const RightSidebar(),
             ],
           ),
-        ],
-      ),
+        ),
+        const Dock(),
+        const SizedBox(height: 15),
+      ],
+    );
+  }
+
+  // ============================================
+  // تخطيط المحمول
+  // ============================================
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        const TopBar(),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                const SearchBar(),
+                const SizedBox(height: 25),
+                const WorkspacesPreview(),
+                const SizedBox(height: 35),
+                const Expanded(child: AppGrid()),
+                const PageIndicator(),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        const Dock(),
+        const SizedBox(height: 15),
+      ],
     );
   }
 }
 
 // ============================================
-// الشريط العلوي - Top Bar (تركواز)
+// الشريط العلوي (Top Bar)
 // ============================================
-class ZionTopBar extends StatelessWidget {
-  const ZionTopBar({super.key});
+class TopBar extends StatelessWidget {
+  const TopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -96,12 +134,14 @@ class ZionTopBar extends StatelessWidget {
       height: 32,
       color: Colors.black.withOpacity(0.85),
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('ZION OS 2027', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF00BCD4))),
-          Text('SECURE MODE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Color(0xFF00BCD4))),
-          Row(
+          const Text('ZION OS 2027', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF00BCD4))),
+          const Text('SECURE MODE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Color(0xFF00BCD4))),
+          const Spacer(),
+          // أيقونات النظام
+          const Row(
             children: [
               Icon(Icons.network_wifi, size: 14, color: Color(0xFF00BCD4)),
               SizedBox(width: 12),
@@ -117,15 +157,126 @@ class ZionTopBar extends StatelessWidget {
 }
 
 // ============================================
-// شريط البحث - Search Bar (تركواز)
+// الشريط الجانبي الأيسر (Activities)
 // ============================================
-class ZionSearchBar extends StatelessWidget {
-  const ZionSearchBar({super.key});
+class LeftSidebar extends StatelessWidget {
+  const LeftSidebar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      color: Colors.black.withOpacity(0.5),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSidebarButton(Icons.grid_view, 'Activities'),
+          const SizedBox(height: 30),
+          _buildSidebarButton(Icons.apps, 'Apps'),
+          const SizedBox(height: 30),
+          _buildSidebarButton(Icons.settings, 'Settings'),
+          const SizedBox(height: 30),
+          _buildSidebarButton(Icons.person, 'Profile'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarButton(IconData icon, String tooltip) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: const Color(0xFF00BCD4).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: const Color(0xFF00BCD4), size: 22),
+      ),
+    );
+  }
+}
+
+// ============================================
+// الشريط الجانبي الأيمن (Notifications)
+// ============================================
+class RightSidebar extends StatelessWidget {
+  const RightSidebar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 280,
+      color: Colors.black.withOpacity(0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 60),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'NOTIFICATIONS',
+              style: TextStyle(fontSize: 12, color: const Color(0xFF00BCD4).withOpacity(0.7), letterSpacing: 1),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              children: const [
+                NotificationCard(title: 'System Update', message: 'Zion OS 2027 is ready', time: '5 min ago'),
+                NotificationCard(title: 'Security Alert', message: 'Unauthorized access blocked', time: '15 min ago'),
+                NotificationCard(title: 'Network', message: 'Connected to secure network', time: '1 hour ago'),
+                NotificationCard(title: 'Storage', message: 'Cleaned 2.5GB of cache', time: '2 hours ago'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NotificationCard extends StatelessWidget {
+  final String title;
+  final String message;
+  final String time;
+  
+  const NotificationCard({super.key, required this.title, required this.message, required this.time});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(message, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================
+// شريط البحث (Search Bar)
+// ============================================
+class SearchBar extends StatelessWidget {
+  const SearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 400,
+      width: ResponsiveWrapper.of(context).isDesktop ? 450 : 350,
       height: 40,
       child: TextField(
         style: const TextStyle(fontSize: 14, color: Color(0xFF00BCD4)),
@@ -147,30 +298,38 @@ class ZionSearchBar extends StatelessWidget {
 }
 
 // ============================================
-// معاينة أسطح المكتب - Workspaces Preview
+// معاينة أسطح المكتب (Workspaces Preview)
 // ============================================
 class WorkspacesPreview extends StatelessWidget {
   const WorkspacesPreview({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = ResponsiveWrapper.of(context).isDesktop;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildWorkspaceCard(isActive: true),
+        _buildWorkspaceCard(isActive: true, width: isDesktop ? 180 : 160),
         const SizedBox(width: 20),
-        _buildWorkspaceCard(isActive: false),
+        _buildWorkspaceCard(isActive: false, width: isDesktop ? 180 : 160),
+        if (isDesktop) ...[
+          const SizedBox(width: 20),
+          _buildWorkspaceCard(isActive: false, width: 180),
+          const SizedBox(width: 20),
+          _buildWorkspaceCard(isActive: false, width: 180),
+        ],
       ],
     );
   }
 
-  Widget _buildWorkspaceCard({required bool isActive}) {
+  Widget _buildWorkspaceCard({required bool isActive, required double width}) {
     return Container(
-      width: 170,
-      height: 100,
+      width: width,
+      height: 110,
       decoration: BoxDecoration(
         color: const Color(0xFF1A2A2F),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isActive ? const Color(0xFF00BCD4).withOpacity(0.6) : Colors.white.withOpacity(0.05),
           width: 1.5,
@@ -182,18 +341,13 @@ class WorkspacesPreview extends StatelessWidget {
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                )
               ]
             : [],
       ),
       child: Center(
         child: Icon(
           Icons.grid_view,
-          size: 20,
+          size: 24,
           color: isActive ? const Color(0xFF00BCD4).withOpacity(0.6) : Colors.white.withOpacity(0.15),
         ),
       ),
@@ -202,35 +356,38 @@ class WorkspacesPreview extends StatelessWidget {
 }
 
 // ============================================
-// شبكة التطبيقات - App Grid (تركواز)
+// شبكة التطبيقات (App Grid)
 // ============================================
-class ZionAppGrid extends StatelessWidget {
-  const ZionAppGrid({super.key});
+class AppGrid extends StatelessWidget {
+  const AppGrid({super.key});
 
   static const List<Map<String, dynamic>> apps = [
-    {'name': 'TERMINAL', 'icon': Icons.terminal, 'gradient': [Color(0xFF00838F), Color(0xFF004D40)]},
-    {'name': 'NETWORK', 'icon': Icons.network_wifi, 'gradient': [Color(0xFF00ACC1), Color(0xFF006064)]},
-    {'name': 'WIFI', 'icon': Icons.wifi, 'gradient': [Color(0xFF26C6DA), Color(0xFF00838F)]},
-    {'name': 'EXPLOIT', 'icon': Icons.bug_report, 'gradient': [Color(0xFF00838F), Color(0xFF00363A)]},
-    {'name': 'CRYPTO', 'icon': Icons.lock, 'gradient': [Color(0xFF00BCD4), Color(0xFF006064)]},
-    {'name': 'STEALTH', 'icon': Icons.visibility_off, 'gradient': [Color(0xFF004D40), Color(0xFF001F1A)]},
-    {'name': 'CRACKER', 'icon': Icons.vpn_key, 'gradient': [Color(0xFF00ACC1), Color(0xFF004D40)]},
-    {'name': 'DDOS', 'icon': Icons.speed, 'gradient': [Color(0xFF26C6DA), Color(0xFF006064)]},
-    {'name': 'FORENSICS', 'icon': Icons.search, 'gradient': [Color(0xFF00838F), Color(0xFF001F1A)]},
-    {'name': 'DATABASE', 'icon': Icons.storage, 'gradient': [Color(0xFF00BCD4), Color(0xFF00363A)]},
-    {'name': 'CLOUD', 'icon': Icons.cloud, 'gradient': [Color(0xFF00ACC1), Color(0xFF004D40)]},
-    {'name': 'SETTINGS', 'icon': Icons.settings, 'gradient': [Color(0xFF006064), Color(0xFF001F1A)]},
+    {'name': 'TERMINAL', 'icon': Icons.terminal},
+    {'name': 'NETWORK', 'icon': Icons.network_wifi},
+    {'name': 'WIFI', 'icon': Icons.wifi},
+    {'name': 'EXPLOIT', 'icon': Icons.bug_report},
+    {'name': 'CRYPTO', 'icon': Icons.lock},
+    {'name': 'STEALTH', 'icon': Icons.visibility_off},
+    {'name': 'CRACKER', 'icon': Icons.vpn_key},
+    {'name': 'DDOS', 'icon': Icons.speed},
+    {'name': 'FORENSICS', 'icon': Icons.search},
+    {'name': 'DATABASE', 'icon': Icons.storage},
+    {'name': 'CLOUD', 'icon': Icons.cloud},
+    {'name': 'SETTINGS', 'icon': Icons.settings},
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = ResponsiveWrapper.of(context).isDesktop;
+    final crossAxisCount = isDesktop ? 8 : 4;
+    
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6,
-        mainAxisSpacing: 25,
-        crossAxisSpacing: 25,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: isDesktop ? 30 : 20,
+        crossAxisSpacing: isDesktop ? 25 : 15,
         childAspectRatio: 0.9,
       ),
       itemCount: apps.length,
@@ -239,15 +396,15 @@ class ZionAppGrid extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 55,
-              height: 55,
+              width: isDesktop ? 60 : 50,
+              height: isDesktop ? 60 : 50,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: apps[index]['gradient'],
+                  colors: [Color(0xFF00BCD4), Color(0xFF006064)],
                 ),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(isDesktop ? 16 : 14),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF00BCD4).withOpacity(0.2),
@@ -256,12 +413,16 @@ class ZionAppGrid extends StatelessWidget {
                   )
                 ],
               ),
-              child: Icon(apps[index]['icon'], color: Colors.white, size: 28),
+              child: Icon(apps[index]['icon'], color: Colors.white, size: isDesktop ? 30 : 26),
             ),
             const SizedBox(height: 8),
             Text(
               apps[index]['name'],
-              style: const TextStyle(fontSize: 11, color: Color(0xFFB2EBF2), letterSpacing: 0.5),
+              style: TextStyle(
+                fontSize: isDesktop ? 12 : 10,
+                color: const Color(0xFFB2EBF2),
+                letterSpacing: 0.5,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -272,7 +433,7 @@ class ZionAppGrid extends StatelessWidget {
 }
 
 // ============================================
-// مؤشر الصفحات - Page Indicator
+// مؤشر الصفحات (Page Indicator)
 // ============================================
 class PageIndicator extends StatelessWidget {
   const PageIndicator({super.key});
@@ -283,15 +444,21 @@ class PageIndicator extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 7,
-          height: 7,
+          width: 8,
+          height: 8,
           decoration: const BoxDecoration(color: Color(0xFF00BCD4), shape: BoxShape.circle),
         ),
         const SizedBox(width: 10),
         Container(
-          width: 7,
-          height: 7,
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.25), shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.1), shape: BoxShape.circle),
         ),
       ],
     );
@@ -299,10 +466,10 @@ class PageIndicator extends StatelessWidget {
 }
 
 // ============================================
-// الشريط السفلي - The Dock (زجاجي - تركواز)
+// الشريط السفلي (Dock) - زجاجي مثل GNOME
 // ============================================
-class ZionDock extends StatelessWidget {
-  const ZionDock({super.key});
+class Dock extends StatelessWidget {
+  const Dock({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -320,8 +487,8 @@ class ZionDock extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
         child: Container(
-          height: 62,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.35),
             borderRadius: BorderRadius.circular(20),
@@ -331,37 +498,34 @@ class ZionDock extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ...dockApps.map((app) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Container(
-                      width: 46,
-                      height: 46,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [Color(0xFF00BCD4), Color(0xFF006064)],
                         ),
-                        borderRadius: BorderRadius.circular(11),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(app['icon'], color: Colors.white, size: 24),
+                      child: Icon(app['icon'], color: Colors.white, size: 26),
                     ),
                   )),
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 width: 1,
                 color: const Color(0xFF00BCD4).withOpacity(0.2),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00BCD4).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.apps, color: Color(0xFF00BCD4), size: 22),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00BCD4).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: const Icon(Icons.apps, color: Color(0xFF00BCD4), size: 26),
               ),
             ],
           ),
