@@ -1,64 +1,25 @@
-name: project_zion
-description: Zion OS - نظام تشغيل للاختراق
-version: 4.0.0+1
+name: zion_os
+description: Zion OS - نظام تشغيل متكامل مع Termux
+version: 4.5.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  # Termux integration
-  terminal_emulator:
-    path: lib/termux/terminal-emulator
-  terminal_view:
-    path: lib/termux/terminal-view
-  termux_shared:
-    path: lib/termux/termux-shared
   flutter:
     sdk: flutter
-  provider: ^6.1.1
-  font_awesome_flutter: ^10.6.0
-  google_fonts: ^6.1.0
-  shared_preferences: ^2.2.2
-  path_provider: ^2.1.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  http: ^1.1.0
-  connectivity_plus: ^5.0.2
-  network_info_plus: ^4.0.0
-  dio: ^5.3.4
-  crypto: ^3.0.3
-  flutter_secure_storage: ^9.0.0
-  permission_handler: ^11.0.1
-  device_info_plus: ^9.1.0
-  battery_plus: ^5.0.0
-  fl_chart: ^0.68.0
-  webview_flutter: ^4.4.0
-  intl: ^0.18.1
-  url_launcher: ^6.2.1
-  share_plus: ^7.2.1
-
-dev_dependencies:
-  # Termux integration
+  
+  # Termux components - الكود المصدر الحقيقي
   terminal_emulator:
     path: lib/termux/terminal-emulator
   terminal_view:
     path: lib/termux/terminal-view
   termux_shared:
     path: lib/termux/termux-shared
+
+dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/icons/
-    - assets/icons/svg/
-    - assets/images/
-    - assets/fonts/
-
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/icons/app_icon.png"
-  min_sdk_android: 21
