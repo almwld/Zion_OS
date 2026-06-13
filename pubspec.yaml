@@ -6,6 +6,13 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
+  # Termux integration
+  terminal_emulator:
+    path: lib/termux/terminal-emulator
+  terminal_view:
+    path: lib/termux/terminal-view
+  termux_shared:
+    path: lib/termux/termux-shared
   flutter:
     sdk: flutter
   provider: ^6.1.1
@@ -31,6 +38,13 @@ dependencies:
   share_plus: ^7.2.1
 
 dev_dependencies:
+  # Termux integration
+  terminal_emulator:
+    path: lib/termux/terminal-emulator
+  terminal_view:
+    path: lib/termux/terminal-view
+  termux_shared:
+    path: lib/termux/termux-shared
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
