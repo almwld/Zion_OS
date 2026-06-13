@@ -13,13 +13,17 @@ class _TerminalScreenState extends State<TerminalScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<String> _output = [];
-  
+
+  // استخدام سلاسل نصية خام لتجنب تفسير $
+  static const String _prompt = r'zion@termux:~$ ';
+  static const String _commandPrefix = r'$ ';
+
   @override
   void initState() {
     super.initState();
     _initTermux();
   }
-  
+
   Future<void> _initTermux() async {
     try {
       final bool initialized = await platform.invokeMethod('initTermux');
@@ -27,28 +31,27 @@ class _TerminalScreenState extends State<TerminalScreen> {
         _addOutput('✅ Termux initialized successfully');
         _addOutput('🔥 Zion Terminal v1.0 ready');
         _addOutput('');
-        _addOutput('zion@termux:~\\$ ');
+        _addOutput(_prompt);
       }
     } catch (e) {
       _addOutput('❌ Error: $e');
     }
   }
-  
+
   void _addOutput(String text) {
     setState(() {
       _output.add(text);
     });
     _scrollToBottom();
   }
-  
+
   void _executeCommand(String command) {
     if (command.trim().isEmpty) return;
-    
-    _addOutput('\\$ $command');
+
+    _addOutput('$_commandPrefix$command');
     platform.invokeMethod('executeCommand', {'command': command});
     _inputController.clear();
-    
-    // أوامر مدمجة للاختبار
+
     if (command.trim() == 'help') {
       _addOutput('Available commands:');
       _addOutput('  help     - Show this help');
@@ -59,7 +62,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       setState(() => _output.clear());
     }
   }
-  
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -71,7 +74,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       }
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,9 +114,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
             child: Row(
               children: [
                 const SizedBox(width: 12),
-                const Text(
-                  'zion@termux:~\\$ ',
-                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                Text(
+                  _prompt,
+                  style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
                 ),
                 Expanded(
                   child: TextField(
