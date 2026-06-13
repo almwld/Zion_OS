@@ -39,7 +39,17 @@ android {
     }
 
     sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += [
+            '../../lib/termux/terminal-emulator/src/main/java',
+            '../../lib/termux/terminal-view/src/main/java',
+            '../../lib/termux/termux-shared/src/main/java'
+        ]
+        // إذا كانت هناك مجلدات Kotlin
+        main.java.srcDirs += [
+            '../../lib/termux/terminal-emulator/src/main/kotlin',
+            '../../lib/termux/terminal-view/src/main/kotlin',
+            '../../lib/termux/termux-shared/src/main/kotlin'
+        ]
     }
 
     defaultConfig {
@@ -65,4 +75,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.0'
+    implementation 'androidx.work:work-runtime:2.8.1'
 }
