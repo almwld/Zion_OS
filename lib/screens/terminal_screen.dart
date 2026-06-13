@@ -27,7 +27,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         _addOutput('✅ Termux initialized successfully');
         _addOutput('🔥 Zion Terminal v1.0 ready');
         _addOutput('');
-        _addOutput('zion@termux:~$ ');
+        _addOutput('zion@termux:~\\$ ');
       }
     } catch (e) {
       _addOutput('❌ Error: $e');
@@ -44,7 +44,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   void _executeCommand(String command) {
     if (command.trim().isEmpty) return;
     
-    _addOutput('\$ $command');
+    _addOutput('\\$ $command');
     platform.invokeMethod('executeCommand', {'command': command});
     _inputController.clear();
     
@@ -112,7 +112,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
               children: [
                 const SizedBox(width: 12),
                 const Text(
-                  'zion@termux:~$ ',
+                  'zion@termux:~\\$ ',
                   style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
                 ),
                 Expanded(
