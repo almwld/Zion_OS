@@ -1,0 +1,4 @@
+[submodule "termux-app-source"]
+path = termux-app-source
+url = https://github.com/termux/termux-app.git
+ignore = dirty

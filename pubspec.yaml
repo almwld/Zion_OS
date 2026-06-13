@@ -8,18 +8,22 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # Termux components - الكود المصدر الحقيقي
-  terminal_emulator:
-    path: lib/termux/terminal-emulator
-  terminal_view:
-    path: lib/termux/terminal-view
-  termux_shared:
-    path: lib/termux/termux-shared
+  provider: ^6.1.1
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.1
+  local_auth: ^2.1.6
+  easy_localization: ^3.0.3
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/translations/
+    - assets/wallpapers/
